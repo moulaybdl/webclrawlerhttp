@@ -46,3 +46,5 @@ test("nameOfTest", () => {
   const expected = "";
   expected(output).toEqual(expected);
 });
+//? then run the command:
+//! npm test
