@@ -1,3 +1,6 @@
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
 const url = require("node:url");
 function normalizeURL(urlStr) {
   const urlObj = url.parse(urlStr);
@@ -7,5 +10,24 @@ function normalizeURL(urlStr) {
   }
   return result.toLowerCase();
 }
+
+function getURLsFromHTML(htmlBody, baseURL) {
+  const dom = new JSDOM(htmlBody, {
+    url: baseURL,
+  });
+
+  let anchors = Array.from(dom.window.document.querySelectorAll("a"));
+  let urls = anchors.map((anchor_el) => anchor_el.getAttribute("href"));
+  return urls;
+}
+
+getURLsFromHTML(
+  `<a href="https://boot.dev">Learn Backend Development</a>
+  <a href="https://boot.dev/folder1/index.html"></a>
+  `,
+  "https://boot.dev"
+).forEach((element) => {
+  console.log(element);
+});
 
 module.exports = { normalizeURL };
