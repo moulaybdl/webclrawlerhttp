@@ -1,2 +1,8 @@
-const { normalizeURL } = require("./crawler.js");
-console.log(normalizeURL("https://blog.boot.dev/path/sdfcsdfc?"));
+const { argv } = require("node:process");
+const { crawlPage } = require("./crawler.js");
+
+function main() {
+  crawlPage(process.argv[2]);
+}
+
+main();

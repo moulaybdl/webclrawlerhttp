@@ -1,5 +1,7 @@
 const jsdom = require("jsdom");
+const { Console } = require("node:console");
 const { get } = require("node:http");
+const { exit } = require("node:process");
 const { JSDOM } = jsdom;
 const url = require("node:url");
 
@@ -38,17 +40,20 @@ function getURLsFromHTML(htmlBody, baseURL) {
     .filter((el) => el !== "invalid");
 }
 
-console.log(
-  getURLsFromHTML(
-    `
-  <html>
-    <body>
-      <a href = "invalid"></a>
-    </body>
-  <html>
-  `,
-    "https://blog.boot.dev"
-  )
-);
+async function crawlPage(currentURL) {
+  fetch(currentURL, {
+    method: "GET",
+    mode: "cors",
+    headers: {},
+  })
+    .then(async (msg) => {
+      if (msg.headers.get("content-type") === "text/html") exit(1);
+      const HTMLBody = await msg.text();
+      console.log(HTMLBody);
+    })
+    .catch((msg) => {
+      exit(1);
+    });
+}
 
-module.exports = { normalizeURL, getURLsFromHTML };
+module.exports = { normalizeURL, getURLsFromHTML, crawlPage };
