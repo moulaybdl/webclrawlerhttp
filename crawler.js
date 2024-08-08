@@ -9,7 +9,6 @@ function normalizeURL(urlStr) {
   const urlObj = url.parse(urlStr);
   var result = `${urlObj.hostname}${urlObj.pathname}`;
   if (result.length > 0 && result.slice(-1) === "/") {
-    console.log("inside");
     result = result.slice(0, -1);
   }
   return result.toLowerCase();
@@ -40,20 +39,40 @@ function getURLsFromHTML(htmlBody, baseURL) {
     .filter((el) => el !== "invalid");
 }
 
-async function crawlPage(currentURL) {
-  fetch(currentURL, {
-    method: "GET",
-    mode: "cors",
-    headers: {},
-  })
-    .then(async (msg) => {
-      if (msg.headers.get("content-type") === "text/html") exit(1);
-      const HTMLBody = await msg.text();
-      console.log(HTMLBody);
-    })
-    .catch((msg) => {
-      exit(1);
+async function crawlPage(baseURL, currentURL = baseURL, pages = {}) {
+  // Base page:
+  const baseURLObj = new URL(baseURL);
+  const currentURLOBJ = new URL(baseURL);
+
+  if (baseURLObj.hostname != currentURLOBJ.hostname) return pages;
+
+  if (normalizeURL(url) in pages) {
+    pages[normalizeURL(url)] += 1;
+    return pages;
+  } else {
+    pages[normalizeURL(url)] += 1;
+  }
+  // Fetching the url page:
+  try {
+    const htmlBodyResp = await fetch(currentURL);
+
+    if (htmlBodyResp.status > 399) {
+      console.error("error occured while fetching");
+    }
+    if (!htmlBodyResp.headers.get("content-type").includes("text/html")) {
+      console.error("content returned is not desirable");
+    }
+
+    const htmlBody = await htmlBodyResp.text();
+    const listOfURL = getURLsFromHTML(htmlBody, baseURL);
+
+    listOfURL.forEach((url) => {
+      pages = crawlPage(baseURL, url, pages);
     });
+  } catch (err) {
+    console.error("Fetch method could not be resolved");
+  }
+  return pages;
 }
 
 module.exports = { normalizeURL, getURLsFromHTML, crawlPage };
