@@ -59,11 +59,10 @@ async function crawlPage(baseURL, currentURL = baseURL, pages = {}) {
 
     if (htmlBodyResp.status > 399) {
       console.error("error occured while fetching");
-      return pages
+      return pages;
     }
     if (!htmlBodyResp.headers.get("content-type").includes("text/html")) {
-      console.error("content returned is not desirable");
-      return pages
+      return pages;
     }
 
     const htmlBody = await htmlBodyResp.text();
