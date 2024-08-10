@@ -42,15 +42,16 @@ function getURLsFromHTML(htmlBody, baseURL) {
 async function crawlPage(baseURL, currentURL = baseURL, pages = {}) {
   // Base page:
   const baseURLObj = new URL(baseURL);
-  const currentURLOBJ = new URL(baseURL);
+  const currentURLOBJ = new URL(currentURL);
 
   if (baseURLObj.hostname != currentURLOBJ.hostname) return pages;
+  const normalizedURL = normalizeURL(currentURL);
 
-  if (normalizeURL(url) in pages) {
-    pages[normalizeURL(url)] += 1;
+  if (normalizedURL in pages) {
+    pages[normalizedURL] += 1;
     return pages;
   } else {
-    pages[normalizeURL(url)] += 1;
+    pages[normalizedURL] = 1;
   }
   // Fetching the url page:
   try {
@@ -58,16 +59,18 @@ async function crawlPage(baseURL, currentURL = baseURL, pages = {}) {
 
     if (htmlBodyResp.status > 399) {
       console.error("error occured while fetching");
+      return pages
     }
     if (!htmlBodyResp.headers.get("content-type").includes("text/html")) {
       console.error("content returned is not desirable");
+      return pages
     }
 
     const htmlBody = await htmlBodyResp.text();
     const listOfURL = getURLsFromHTML(htmlBody, baseURL);
 
-    listOfURL.forEach((url) => {
-      pages = crawlPage(baseURL, url, pages);
+    listOfURL.forEach(async (url) => {
+      pages = await crawlPage(baseURL, url, pages);
     });
   } catch (err) {
     console.error("Fetch method could not be resolved");
